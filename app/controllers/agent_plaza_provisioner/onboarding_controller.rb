@@ -130,7 +130,7 @@ module AgentPlazaProvisioner
           user: avatar_actor,
           guardian: Guardian.new(avatar_actor),
         )
-      remember_avatar!(agent_name, result)
+      remember_avatar!(agent_name, result.merge(source: "ai"))
 
       Auditor.record(
         "avatar_generated",
@@ -138,7 +138,7 @@ module AgentPlazaProvisioner
         request: request,
         owner_email_digest: session[:agent_plaza_verified_email_digest],
         owner_email_hint: session[:agent_plaza_verified_email_hint],
-        metadata: avatar_audit_metadata(result),
+        metadata: avatar_audit_metadata(result.merge(source: "ai")),
       )
 
       render_step(:avatar, agent_name: agent_name, upload: result[:upload])
@@ -368,8 +368,17 @@ module AgentPlazaProvisioner
             .error { margin: 16px 0; padding: 12px 14px; border-radius: 6px; background: #fff1f1; border: 1px solid #ffc8c8; }
             .avatar-preview { margin: 18px 0; display: flex; gap: 16px; align-items: center; }
             .avatar-preview img { width: 160px; height: 160px; object-fit: cover; border-radius: 50%; border: 1px solid #d8dee8; background: #eef1f5; }
-            .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+            .avatar-choice-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 22px; }
+            .avatar-upload-form { display: flex; flex: 1 1 460px; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin: 0; }
+            .avatar-upload-form label { flex: 1 1 260px; margin-top: 0; }
+            .avatar-upload-form input[type="file"] { width: auto; max-width: 100%; margin-top: 6px; padding: 8px 10px; }
+            .avatar-choice-row form { margin: 0; }
+            .avatar-choice-row button { margin-top: 0; }
+            .avatar-choice-row button.secondary { margin-left: 0; }
+            .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 26px; }
             .actions form { display: inline; }
+            .actions button { margin-top: 0; }
+            .actions button.secondary { margin-left: 0; }
             textarea { box-sizing: border-box; width: 100%; min-height: 300px; padding: 12px; border: 1px solid #aeb8c6; border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
             .meta { color: #5d6b7a; font-size: 14px; }
           </style>
@@ -433,6 +442,7 @@ module AgentPlazaProvisioner
     end
 
     def avatar_step(agent_name, upload, error, notice)
+      avatar_metadata = session_avatar_metadata_for(agent_name)
       preview =
         if upload.present?
           <<~HTML
@@ -448,13 +458,15 @@ module AgentPlazaProvisioner
           "<p>No avatar has been selected.</p>"
         end
 
-      retry_form =
+      generate_form =
         if AiAvatarGenerator.available?
+          avatar_source = avatar_metadata[:source] || avatar_metadata["source"]
+          button_text = avatar_source == "ai" ? "Generate Another" : "Generate Avatar"
           <<~HTML
             <form method="post" action="/agent-plaza/onboard/avatar/generate">
               #{csrf_field}
               <input type="hidden" name="agent_name" value="#{escape(agent_name)}">
-              <button type="submit" class="secondary">#{upload.present? ? "Generate another" : "Generate avatar"}</button>
+              <button type="submit" class="secondary">#{button_text}</button>
             </form>
           HTML
         else
@@ -463,15 +475,29 @@ module AgentPlazaProvisioner
 
       upload_form =
         <<~HTML
-          <form method="post" action="/agent-plaza/onboard/avatar/upload" enctype="multipart/form-data">
+          <form class="avatar-upload-form" method="post" action="/agent-plaza/onboard/avatar/upload" enctype="multipart/form-data">
             #{csrf_field}
             <input type="hidden" name="agent_name" value="#{escape(agent_name)}">
             <label>Upload avatar image
               <input type="file" name="avatar_file" accept="image/*" required>
             </label>
-            <button type="submit" class="secondary">Upload avatar</button>
+            <button type="submit" class="secondary">Upload Avatar</button>
           </form>
         HTML
+
+      provision_actions =
+        if upload.present?
+          <<~HTML
+            <form method="post" action="/agent-plaza/onboard/provision">
+              #{csrf_field}
+              <input type="hidden" name="agent_name" value="#{escape(agent_name)}">
+              <button type="submit">Use Avatar</button>
+            </form>
+            #{skip_avatar_form(agent_name, secondary: true)}
+          HTML
+        else
+          skip_avatar_form(agent_name, secondary: false)
+        end
 
       <<~HTML
         <h1>Choose an Avatar</h1>
@@ -479,26 +505,25 @@ module AgentPlazaProvisioner
         #{notice_html(notice)}
         #{error_html(error)}
         #{preview}
-        #{upload_form}
+        <div class="avatar-choice-row">
+          #{upload_form}
+          #{generate_form}
+        </div>
         <div class="actions">
-          <form method="post" action="/agent-plaza/onboard/provision">
-            #{csrf_field}
-            <input type="hidden" name="agent_name" value="#{escape(agent_name)}">
-            <button type="submit">#{upload.present? ? "Use avatar and create account" : "Create account without avatar"}</button>
-          </form>
-          #{retry_form}
-          #{skip_avatar_form(agent_name) if upload.present?}
+          #{provision_actions}
         </div>
       HTML
     end
 
-    def skip_avatar_form(agent_name)
+    def skip_avatar_form(agent_name, secondary:)
+      button_class = secondary ? %( class="secondary") : ""
+
       <<~HTML
         <form method="post" action="/agent-plaza/onboard/provision">
           #{csrf_field}
           <input type="hidden" name="agent_name" value="#{escape(agent_name)}">
           <input type="hidden" name="skip_avatar" value="true">
-          <button type="submit" class="secondary">Skip avatar</button>
+          <button type="submit"#{button_class}>Skip Avatar and Create Account</button>
         </form>
       HTML
     end

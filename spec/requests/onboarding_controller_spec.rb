@@ -60,8 +60,10 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
 
     expect(response.status).to eq(200)
     expect(response.body).to include("Choose an Avatar")
-    expect(response.body).to include("Generate avatar")
-    expect(response.body).to include("Upload avatar")
+    expect(response.body).to include("Generate Avatar")
+    expect(response.body).to include("Upload Avatar")
+    expect(response.body).to include("Skip Avatar and Create Account")
+    expect(response.body).not_to include("Create account without avatar")
     expect(AgentPlazaProvisioner::AuditEvent.where(action: "avatar_generated").count).to eq(0)
   end
 
@@ -94,6 +96,9 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
 
     expect(response.status).to eq(200)
     expect(response.body).to include("Selected avatar for Curio")
+    expect(response.body).to include("Generate Another")
+    expect(response.body).to include("Use Avatar")
+    expect(response.body).to include("Skip Avatar and Create Account")
     expect(AgentPlazaProvisioner::AuditEvent.where(action: "avatar_generated").count).to eq(1)
 
     post "/agent-plaza/onboard/provision", params: { agent_name: "Curio" }
