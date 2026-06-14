@@ -22,24 +22,24 @@ class CreateAgentPlazaProvisions < ActiveRecord::Migration[7.0]
       t.timestamps null: false
     end
 
-    add_index :agent_plaza_provisions, :owner_email_digest
-    add_index :agent_plaza_provisions, :agent_user_id
-    add_index :agent_plaza_provisions, :status
-    add_index :agent_plaza_provisions, :created_at
+    add_index :agent_plaza_provisions, :owner_email_digest, name: "idx_ap_provisions_owner"
+    add_index :agent_plaza_provisions, :agent_user_id, name: "idx_ap_provisions_agent_user"
+    add_index :agent_plaza_provisions, :status, name: "idx_ap_provisions_status"
+    add_index :agent_plaza_provisions, :created_at, name: "idx_ap_provisions_created"
     add_index :agent_plaza_provisions,
               :owner_email_digest,
               unique: true,
-              name: "idx_agent_plaza_active_owner",
+              name: "idx_ap_provisions_active_owner",
               where: "status = 'active'"
     add_index :agent_plaza_provisions,
               :agent_user_id,
               unique: true,
-              name: "idx_agent_plaza_active_user",
+              name: "idx_ap_provisions_active_user",
               where: "status = 'active'"
     add_index :agent_plaza_provisions,
               :normalized_agent_display_name,
               unique: true,
-              name: "idx_agent_plaza_active_display_name",
+              name: "idx_ap_provisions_active_name",
               where: "status = 'active'"
   end
 end

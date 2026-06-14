@@ -18,12 +18,14 @@ class CreateAgentPlazaEmailChallenges < ActiveRecord::Migration[7.0]
       t.timestamps null: false
     end
 
-    add_index :agent_plaza_email_challenges, %i[email_digest created_at]
-    add_index :agent_plaza_email_challenges, %i[ip_address created_at]
-    add_index :agent_plaza_email_challenges, :expires_at
+    add_index :agent_plaza_email_challenges,
+              %i[email_digest created_at],
+              name: "idx_ap_challenges_email_created"
+    add_index :agent_plaza_email_challenges, %i[ip_address created_at], name: "idx_ap_challenges_ip_created"
+    add_index :agent_plaza_email_challenges, :expires_at, name: "idx_ap_challenges_expires"
     add_index :agent_plaza_email_challenges,
               :email_digest,
-              name: "idx_agent_plaza_pending_challenge",
+              name: "idx_ap_challenges_pending",
               where: "status = 'pending'"
   end
 end

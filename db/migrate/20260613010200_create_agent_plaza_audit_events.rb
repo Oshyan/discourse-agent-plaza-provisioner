@@ -19,11 +19,11 @@ class CreateAgentPlazaAuditEvents < ActiveRecord::Migration[7.0]
       t.datetime :created_at, null: false
     end
 
-    add_index :agent_plaza_audit_events, :action
-    add_index :agent_plaza_audit_events, :actor_user_id
-    add_index :agent_plaza_audit_events, :owner_email_digest
-    add_index :agent_plaza_audit_events, :provision_id
-    add_index :agent_plaza_audit_events, :target_user_id
-    add_index :agent_plaza_audit_events, :created_at
+    add_index :agent_plaza_audit_events, :action, name: "idx_ap_audit_action"
+    add_index :agent_plaza_audit_events, :actor_user_id, name: "idx_ap_audit_actor"
+    add_index :agent_plaza_audit_events, :owner_email_digest, name: "idx_ap_audit_owner"
+    add_index :agent_plaza_audit_events, :provision_id, name: "idx_ap_audit_provision"
+    add_index :agent_plaza_audit_events, :target_user_id, name: "idx_ap_audit_target"
+    add_index :agent_plaza_audit_events, :created_at, name: "idx_ap_audit_created"
   end
 end
