@@ -10,7 +10,7 @@
 enabled_site_setting :agent_plaza_provisioner_enabled
 
 register_asset "stylesheets/common/agent-plaza-provisioner.scss"
-register_svg_icon "user-robot"
+register_svg_icon "robot"
 register_svg_icon "key"
 register_svg_icon "shield-halved"
 register_svg_icon "rotate"
