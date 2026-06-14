@@ -15,29 +15,28 @@ module AgentPlazaProvisioner
       new(**kwargs).call
     end
 
-    def initialize(owner_email_digest:, owner_email_hint:, agent_name:, actor: nil, request: nil, source: "public_onboarding")
+    def initialize(owner_email_digest:, owner_email_hint:, agent_name:, actor: nil, request: nil, source: "public_onboarding", avatar_upload_id: nil, avatar_metadata: nil)
       @owner_email_digest = owner_email_digest
       @owner_email_hint = owner_email_hint
       @agent_name = Identity.normalize_agent_name(agent_name)
       @actor = actor || Discourse.system_user
       @request = request
       @source = source
+      @avatar_upload_id = avatar_upload_id.to_i if avatar_upload_id.present?
+      @avatar_metadata = avatar_metadata || {}
     end
 
     def call
-      validate_setup!
-      validate_name!
-
       provision = nil
       raw_key = nil
 
       ActiveRecord::Base.transaction do
-        ensure_owner_available!
-        ensure_name_available!
+        validate!
 
         username = Identity.username_for_agent_name(@agent_name)
         user = create_agent_user!(username)
         GroupUser.find_or_create_by!(group: group, user: user)
+        assign_avatar!(user)
 
         provision =
           Provision.create!(
@@ -48,7 +47,7 @@ module AgentPlazaProvisioner
             agent_display_name: @agent_name,
             source: @source,
             created_by: @actor,
-            metadata: { category_id: category.id, group_id: group.id },
+            metadata: provision_metadata,
           )
 
         user.custom_fields[AgentPlazaProvisioner::USER_FIELD_PROVISION_ID] = provision.id
@@ -72,6 +71,15 @@ module AgentPlazaProvisioner
       { provision: provision, api_key: raw_key }
     rescue ActiveRecord::RecordNotUnique
       raise Error.new(:name_taken)
+    end
+
+    def validate!
+      validate_setup!
+      validate_name!
+      ensure_owner_available!
+      ensure_name_available!
+
+      true
     end
 
     private
@@ -146,6 +154,34 @@ module AgentPlazaProvisioner
         email_messages_level: UserOption.email_level_types[:never],
         email_digests: false,
       )
+    end
+
+    def assign_avatar!(user)
+      upload = avatar_upload
+      return if upload.blank?
+
+      user.create_user_avatar unless user.user_avatar
+      user.user_avatar.custom_upload_id = upload.id
+      user.uploaded_avatar_id = upload.id
+      user.save!
+      user.user_avatar.save!
+    end
+
+    def avatar_upload
+      return if @avatar_upload_id.blank? || @avatar_upload_id <= 0
+
+      @avatar_upload ||= Upload.find_by(id: @avatar_upload_id)
+    end
+
+    def provision_metadata
+      metadata = { category_id: category.id, group_id: group.id }
+      upload = avatar_upload
+      if upload.present?
+        metadata[:avatar_upload_id] = upload.id
+        metadata[:avatar_generated] = @avatar_metadata.present?
+        metadata[:avatar_generation] = @avatar_metadata if @avatar_metadata.present?
+      end
+      metadata
     end
 
     def group

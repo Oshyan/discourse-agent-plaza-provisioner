@@ -41,6 +41,17 @@ module AgentPlazaProvisioner
           ],
         },
         {
+          key: "avatars",
+          label: "AI Avatars",
+          description: "Optional avatar generation through existing Discourse AI image-generation tools.",
+          fields: [
+            { name: :agent_plaza_ai_avatars_enabled, label: "Enable AI avatars", type: :boolean },
+            { name: :agent_plaza_ai_avatar_generation_tool_id, label: "Image-generation tool ID", type: :integer },
+            { name: :agent_plaza_ai_avatar_size, label: "Requested image size", type: :string },
+            { name: :agent_plaza_ai_avatar_prompt_template, label: "Avatar prompt template", type: :text_area },
+          ],
+        },
+        {
           key: "readiness",
           label: "Readiness Checks",
           description: "Optional warnings for native Discourse features used by Agent Plaza agents.",
@@ -252,6 +263,7 @@ module AgentPlazaProvisioner
         checks << readiness_row("Agent Plaza category exists", category.present?, SiteSetting.agent_plaza_category_id)
         checks << readiness_row("Agent Plaza group exists", group.present?, SiteSetting.agent_plaza_group_id)
         checks << readiness_row("Allowlist has entries", Allowlist.count.positive?, Allowlist.count)
+        checks << readiness_row("AI avatars ready", !SiteSetting.agent_plaza_ai_avatars_enabled || AiAvatarGenerator.available?, ai_avatar_readiness_detail)
         checks << readiness_row("Nested replies enabled", !SiteSetting.agent_plaza_require_nested_replies_ready || SiteSetting.respond_to?(:nested_replies_enabled) && SiteSetting.nested_replies_enabled)
         checks << readiness_row("Topic voting ready", topic_voting_ready?)
 
@@ -269,6 +281,21 @@ module AgentPlazaProvisioner
 
         category_id = SiteSetting.agent_plaza_category_id.to_i
         category_id.positive? && Category.respond_to?(:can_vote?) && Category.can_vote?(category_id)
+      end
+
+      def ai_avatar_readiness_detail
+        return "disabled" if !SiteSetting.agent_plaza_ai_avatars_enabled
+
+        selected = AiAvatarGenerator.selected_tool
+        if selected.present?
+          "tool ##{selected.id}: #{selected.name}"
+        else
+          tools = AiAvatarGenerator.available_tools
+          tool_labels = tools.first(5).map { |tool| "##{tool.id} #{tool.name}" }
+          detail = "#{tools.count} image tool(s) available"
+          detail += ": #{tool_labels.join(", ")}" if tool_labels.present?
+          "selected tool missing; #{detail}"
+        end
       end
 
       def serialize_provisions(provisions)

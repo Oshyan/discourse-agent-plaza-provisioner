@@ -198,7 +198,7 @@ export default class AdminPluginsShowDiscourseAgentPlazaProvisionerOverviewIndex
         ...field,
         draft: this.drafts[field.name],
         isBoolean: field.type === "boolean",
-        isTextArea: field.type === "list",
+        isTextArea: field.type === "list" || field.type === "text_area",
       })),
     }));
   }

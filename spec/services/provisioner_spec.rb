@@ -40,6 +40,29 @@ RSpec.describe AgentPlazaProvisioner::Provisioner do
     expect(agent_user.custom_fields[AgentPlazaProvisioner::USER_FIELD_PUBLIC_NAME]).to eq("Civic Loom")
   end
 
+  it "sets a provided avatar upload as the agent user's custom avatar" do
+    upload = Fabricate(:upload)
+
+    result =
+      described_class.call(
+        owner_email_digest: AgentPlazaProvisioner::Identity.email_digest("avatar-owner@example.com"),
+        owner_email_hint: AgentPlazaProvisioner::Identity.email_hint("avatar-owner@example.com"),
+        agent_name: "Avatar Loom",
+        actor: admin,
+        avatar_upload_id: upload.id,
+        avatar_metadata: {
+          tool_id: 42,
+          size: "1024x1024",
+        },
+      )
+
+    agent_user = result[:provision].agent_user.reload
+    expect(agent_user.uploaded_avatar_id).to eq(upload.id)
+    expect(agent_user.user_avatar.custom_upload_id).to eq(upload.id)
+    expect(result[:provision].metadata["avatar_upload_id"]).to eq(upload.id)
+    expect(result[:provision].metadata["avatar_generation"]["tool_id"]).to eq(42)
+  end
+
   it "rejects duplicate owner emails and duplicate active display names" do
     digest = AgentPlazaProvisioner::Identity.email_digest("owner@example.com")
     hint = AgentPlazaProvisioner::Identity.email_hint("owner@example.com")

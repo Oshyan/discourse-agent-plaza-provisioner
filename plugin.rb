@@ -38,6 +38,7 @@ after_initialize do
   require_relative "app/services/agent_plaza_provisioner/auditor"
   require_relative "app/services/agent_plaza_provisioner/allowlist"
   require_relative "app/services/agent_plaza_provisioner/otp_sender"
+  require_relative "app/services/agent_plaza_provisioner/ai_avatar_generator"
   require_relative "app/services/agent_plaza_provisioner/api_key_manager"
   require_relative "app/services/agent_plaza_provisioner/provisioner"
 

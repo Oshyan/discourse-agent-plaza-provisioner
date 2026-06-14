@@ -14,6 +14,10 @@ Discourse::Application.routes.append do
        defaults: {
          format: :html,
        }
+  post "/agent-plaza/onboard/avatar" => "agent_plaza_provisioner/onboarding#avatar",
+       defaults: {
+         format: :html,
+       }
   post "/agent-plaza/onboard/provision" => "agent_plaza_provisioner/onboarding#provision",
        defaults: {
          format: :html,

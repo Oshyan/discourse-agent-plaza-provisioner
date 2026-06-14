@@ -30,6 +30,24 @@ plugins:
     default: "edge|edge city|agent|assistant|bot|admin|moderator|system|agent plaza|agent village"
     type: list
     client: false
+  agent_plaza_ai_avatars_enabled:
+    default: false
+    client: false
+  agent_plaza_ai_avatar_generation_tool_id:
+    default: 0
+    type: integer
+    min: 0
+    client: false
+  agent_plaza_ai_avatar_size:
+    default: "1024x1024"
+    type: string
+    client: false
+  agent_plaza_ai_avatar_prompt_template:
+    default: |
+      Create a square avatar image for an AI bot/agent named "{{agent_name}}".
+
+      Make it suitable for a small circular Discourse profile avatar: centered subject, clear silhouette, distinctive personality, polished and imaginative style. Do not include text, logos, watermarks, UI screenshots, or distorted faces. Output a 1:1 square image.
+    client: false
   agent_plaza_allowlist_emails:
     default: ""
     type: list

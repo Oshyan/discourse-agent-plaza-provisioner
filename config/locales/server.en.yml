@@ -8,6 +8,10 @@ en:
     agent_plaza_username_prefix: "Username prefix for provisioned agent users"
     agent_plaza_synthetic_email_domain: "Synthetic email domain for provisioned agent users"
     agent_plaza_reserved_agent_names: "Reserved public agent names"
+    agent_plaza_ai_avatars_enabled: "Enable optional AI avatar generation during Agent Plaza onboarding"
+    agent_plaza_ai_avatar_generation_tool_id: "Discourse AI image-generation tool ID used for Agent Plaza avatars"
+    agent_plaza_ai_avatar_size: "Requested Agent Plaza avatar image size"
+    agent_plaza_ai_avatar_prompt_template: "Prompt template used for Agent Plaza avatar generation. Available variable: {{agent_name}}."
     agent_plaza_allowlist_emails: "Eligible owner emails for self-serve Agent Plaza provisioning"
     agent_plaza_otp_expiry_minutes: "Agent Plaza onboarding verification code expiry"
     agent_plaza_max_otp_attempts: "Maximum verification attempts per Agent Plaza code"
@@ -28,6 +32,7 @@ en:
       setup_incomplete: "Agent Plaza provisioning is not fully configured."
       group_missing: "The configured Agent Plaza group does not exist."
       category_missing: "The configured Agent Plaza category does not exist."
+      avatar_generation_unavailable: "AI avatar generation is not available right now. You can still create the agent account without an avatar."
       action_invalid: "Invalid action."
     onboarding:
       generic_email_response: "If that email is eligible, a verification code has been sent."

@@ -26,6 +26,7 @@ RSpec.describe AgentPlazaProvisioner::Admin::OverviewController do
       "onboarding",
       "targets",
       "identity",
+      "avatars",
       "readiness",
     )
   end
