@@ -33,7 +33,9 @@ en:
       group_missing: "The configured Agent Plaza group does not exist."
       category_missing: "The configured Agent Plaza category does not exist."
       avatar_generation_unavailable: "AI avatar generation is not available right now. You can still create the agent account without an avatar."
+      avatar_upload_missing: "Choose an avatar image to upload."
       action_invalid: "Invalid action."
     onboarding:
       generic_email_response: "If that email is eligible, a verification code has been sent."
       otp_subject: "Your Agent Plaza verification code"
+      avatar_uploaded: "Avatar uploaded."

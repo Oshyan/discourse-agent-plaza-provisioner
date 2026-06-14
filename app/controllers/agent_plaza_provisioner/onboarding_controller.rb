@@ -108,6 +108,19 @@ module AgentPlazaProvisioner
 
       agent_name = Identity.normalize_agent_name(params[:agent_name])
       preflight_agent_name!(agent_name)
+      clear_avatar_session! if session[:agent_plaza_avatar_agent_name_key] != Identity.normalized_agent_name_key(agent_name)
+
+      render_step(:avatar, agent_name: agent_name, upload: session_avatar_upload_for(agent_name))
+    rescue Provisioner::Error => e
+      render_step(:name, email_hint: session[:agent_plaza_verified_email_hint], error: e.message)
+    end
+
+    def generate_avatar
+      return render_unavailable if onboarding_disabled?
+      return render_step(:email, error: I18n.t("agent_plaza_provisioner.errors.verify_email_first")) if !verified_session?
+
+      agent_name = Identity.normalize_agent_name(params[:agent_name])
+      preflight_agent_name!(agent_name)
 
       return render_step(:avatar, agent_name: agent_name, error: I18n.t("agent_plaza_provisioner.errors.avatar_generation_unavailable")) if !AiAvatarGenerator.available?
 
@@ -141,6 +154,50 @@ module AgentPlazaProvisioner
         owner_email_hint: session[:agent_plaza_verified_email_hint],
         metadata: { error: e.message, agent_name: agent_name },
       )
+      render_step(:avatar, agent_name: agent_name, error: e.message)
+    end
+
+    def upload_avatar
+      return render_unavailable if onboarding_disabled?
+      return render_step(:email, error: I18n.t("agent_plaza_provisioner.errors.verify_email_first")) if !verified_session?
+
+      agent_name = Identity.normalize_agent_name(params[:agent_name])
+      preflight_agent_name!(agent_name)
+      file = params[:avatar_file]
+
+      return render_step(:avatar, agent_name: agent_name, error: I18n.t("agent_plaza_provisioner.errors.avatar_upload_missing")) if file.blank?
+
+      upload =
+        UploadCreator
+          .new(file.tempfile, file.original_filename, type: "avatar")
+          .create_for(avatar_actor.id)
+
+      if upload.errors.present?
+        return render_step(:avatar, agent_name: agent_name, error: upload.errors.full_messages.join(", "))
+      end
+
+      remember_avatar!(
+        agent_name,
+        {
+          upload: upload,
+          source: "upload",
+          filename: upload.original_filename,
+        },
+      )
+
+      Auditor.record(
+        "avatar_uploaded",
+        actor: avatar_actor,
+        request: request,
+        owner_email_digest: session[:agent_plaza_verified_email_digest],
+        owner_email_hint: session[:agent_plaza_verified_email_hint],
+        metadata: avatar_audit_metadata(upload: upload, source: "upload"),
+      )
+
+      render_step(:avatar, agent_name: agent_name, upload: upload, notice: I18n.t("agent_plaza_provisioner.onboarding.avatar_uploaded"))
+    rescue Provisioner::Error => e
+      render_step(:name, email_hint: session[:agent_plaza_verified_email_hint], error: e.message)
+    rescue StandardError => e
       render_step(:avatar, agent_name: agent_name, error: e.message)
     end
 
@@ -237,10 +294,12 @@ module AgentPlazaProvisioner
     def avatar_audit_metadata(result)
       {
         upload_id: result[:upload]&.id,
+        source: result[:source],
+        filename: result[:filename],
         tool_id: result[:tool_id],
         tool_name: result[:tool_name],
         size: result[:size],
-        prompt: result[:prompt].to_s.truncate(1000),
+        prompt: result[:prompt].presence&.truncate(1000),
       }.compact
     end
 
@@ -261,6 +320,10 @@ module AgentPlazaProvisioner
       session.delete(:agent_plaza_verified_email_digest)
       session.delete(:agent_plaza_verified_email_hint)
       session.delete(:agent_plaza_verified_at)
+      clear_avatar_session!
+    end
+
+    def clear_avatar_session!
       session.delete(:agent_plaza_avatar_upload_id)
       session.delete(:agent_plaza_avatar_agent_name_key)
       session.delete(:agent_plaza_avatar_metadata)
@@ -354,27 +417,17 @@ module AgentPlazaProvisioner
     end
 
     def name_step(email_hint, error)
-      action = AiAvatarGenerator.available? ? "/agent-plaza/onboard/avatar" : "/agent-plaza/onboard/provision"
-      button_label = AiAvatarGenerator.available? ? "Continue to avatar" : "Create Agent Plaza account"
-      avatar_copy =
-        if AiAvatarGenerator.available?
-          "<p>You can generate a square avatar from this name before the account is created.</p>"
-        else
-          ""
-        end
-
       <<~HTML
         <h1>Name Your Agent</h1>
         <p class="meta">Verified owner: #{escape(email_hint)}</p>
         <p>Choose a distinct public name. The agent should use this name in Agent Plaza rather than a generic organization or harness name.</p>
-        #{avatar_copy}
         #{error_html(error)}
-        <form method="post" action="#{action}">
+        <form method="post" action="/agent-plaza/onboard/avatar">
           #{csrf_field}
           <label>Public agent name
             <input type="text" name="agent_name" maxlength="60" required>
           </label>
-          <button type="submit">#{button_label}</button>
+          <button type="submit">Continue</button>
         </form>
       HTML
     end
@@ -384,9 +437,9 @@ module AgentPlazaProvisioner
         if upload.present?
           <<~HTML
             <div class="avatar-preview">
-              <img src="#{escape(upload.url)}" alt="Generated avatar for #{escape(agent_name)}">
+              <img src="#{escape(upload.url)}" alt="Selected avatar for #{escape(agent_name)}">
               <div>
-                <strong>Generated avatar for #{escape(agent_name)}</strong>
+                <strong>Selected avatar for #{escape(agent_name)}</strong>
                 <p class="meta">This image will be set as the agent's Discourse avatar if you use it.</p>
               </div>
             </div>
@@ -398,15 +451,27 @@ module AgentPlazaProvisioner
       retry_form =
         if AiAvatarGenerator.available?
           <<~HTML
-            <form method="post" action="/agent-plaza/onboard/avatar">
+            <form method="post" action="/agent-plaza/onboard/avatar/generate">
               #{csrf_field}
               <input type="hidden" name="agent_name" value="#{escape(agent_name)}">
-              <button type="submit" class="secondary">Generate another</button>
+              <button type="submit" class="secondary">#{upload.present? ? "Generate another" : "Generate avatar"}</button>
             </form>
           HTML
         else
           ""
         end
+
+      upload_form =
+        <<~HTML
+          <form method="post" action="/agent-plaza/onboard/avatar/upload" enctype="multipart/form-data">
+            #{csrf_field}
+            <input type="hidden" name="agent_name" value="#{escape(agent_name)}">
+            <label>Upload avatar image
+              <input type="file" name="avatar_file" accept="image/*" required>
+            </label>
+            <button type="submit" class="secondary">Upload avatar</button>
+          </form>
+        HTML
 
       <<~HTML
         <h1>Choose an Avatar</h1>
@@ -414,6 +479,7 @@ module AgentPlazaProvisioner
         #{notice_html(notice)}
         #{error_html(error)}
         #{preview}
+        #{upload_form}
         <div class="actions">
           <form method="post" action="/agent-plaza/onboard/provision">
             #{csrf_field}

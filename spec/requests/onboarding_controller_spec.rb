@@ -40,7 +40,32 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
     expect(AgentPlazaProvisioner::AuditEvent.where(action: "otp_denied").count).to eq(1)
   end
 
-  it "generates an optional avatar after verification and applies it during provisioning" do
+  it "shows avatar choices after naming without automatically generating an avatar" do
+    _challenge, code =
+      AgentPlazaProvisioner::EmailChallenge.issue!(
+        email: "owner@example.com",
+        ip_address: "127.0.0.1",
+        user_agent: "RSpec",
+      )
+
+    allow(AgentPlazaProvisioner::AiAvatarGenerator).to receive(:available?).and_return(true)
+    expect(AgentPlazaProvisioner::AiAvatarGenerator).not_to receive(:generate!)
+
+    post "/agent-plaza/onboard/verify", params: { email: "owner@example.com", code: code }
+
+    expect(response.status).to eq(200)
+    expect(response.body).to include("Continue")
+
+    post "/agent-plaza/onboard/avatar", params: { agent_name: "Curio" }
+
+    expect(response.status).to eq(200)
+    expect(response.body).to include("Choose an Avatar")
+    expect(response.body).to include("Generate avatar")
+    expect(response.body).to include("Upload avatar")
+    expect(AgentPlazaProvisioner::AuditEvent.where(action: "avatar_generated").count).to eq(0)
+  end
+
+  it "generates an optional avatar only when requested and applies it during provisioning" do
     upload = Fabricate(:upload)
     _challenge, code =
       AgentPlazaProvisioner::EmailChallenge.issue!(
@@ -63,12 +88,12 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
     post "/agent-plaza/onboard/verify", params: { email: "owner@example.com", code: code }
 
     expect(response.status).to eq(200)
-    expect(response.body).to include("Continue to avatar")
+    expect(response.body).to include("Continue")
 
-    post "/agent-plaza/onboard/avatar", params: { agent_name: "Curio" }
+    post "/agent-plaza/onboard/avatar/generate", params: { agent_name: "Curio" }
 
     expect(response.status).to eq(200)
-    expect(response.body).to include("Generated avatar for Curio")
+    expect(response.body).to include("Selected avatar for Curio")
     expect(AgentPlazaProvisioner::AuditEvent.where(action: "avatar_generated").count).to eq(1)
 
     post "/agent-plaza/onboard/provision", params: { agent_name: "Curio" }
@@ -77,5 +102,35 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
     provision = AgentPlazaProvisioner::Provision.last
     expect(provision.agent_user.uploaded_avatar_id).to eq(upload.id)
     expect(provision.metadata["avatar_upload_id"]).to eq(upload.id)
+  end
+
+  it "uploads an optional avatar and applies it during provisioning" do
+    upload = Fabricate(:upload)
+    creator = instance_double(UploadCreator, create_for: upload)
+    uploaded_file = Rack::Test::UploadedFile.new(file_from_fixtures("logo.png"))
+    _challenge, code =
+      AgentPlazaProvisioner::EmailChallenge.issue!(
+        email: "owner@example.com",
+        ip_address: "127.0.0.1",
+        user_agent: "RSpec",
+      )
+
+    allow(UploadCreator).to receive(:new).and_return(creator)
+
+    post "/agent-plaza/onboard/verify", params: { email: "owner@example.com", code: code }
+    post "/agent-plaza/onboard/avatar/upload", params: { agent_name: "Curio", avatar_file: uploaded_file }
+
+    expect(response.status).to eq(200)
+    expect(response.body).to include("Avatar uploaded")
+    expect(UploadCreator).to have_received(:new)
+    expect(AgentPlazaProvisioner::AuditEvent.where(action: "avatar_uploaded").count).to eq(1)
+
+    post "/agent-plaza/onboard/provision", params: { agent_name: "Curio" }
+
+    expect(response.status).to eq(200)
+    provision = AgentPlazaProvisioner::Provision.last
+    expect(provision.agent_user.uploaded_avatar_id).to eq(upload.id)
+    expect(provision.metadata["avatar_upload_id"]).to eq(upload.id)
+    expect(provision.metadata["avatar_generation"]["source"]).to eq("upload")
   end
 end

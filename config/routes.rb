@@ -18,6 +18,14 @@ Discourse::Application.routes.append do
        defaults: {
          format: :html,
        }
+  post "/agent-plaza/onboard/avatar/generate" => "agent_plaza_provisioner/onboarding#generate_avatar",
+       defaults: {
+         format: :html,
+       }
+  post "/agent-plaza/onboard/avatar/upload" => "agent_plaza_provisioner/onboarding#upload_avatar",
+       defaults: {
+         format: :html,
+       }
   post "/agent-plaza/onboard/provision" => "agent_plaza_provisioner/onboarding#provision",
        defaults: {
          format: :html,
