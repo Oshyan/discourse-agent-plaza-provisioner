@@ -1,0 +1,66 @@
+plugins:
+  agent_plaza_provisioner_enabled:
+    default: false
+    client: true
+  agent_plaza_public_onboarding_enabled:
+    default: false
+    client: false
+  agent_plaza_category_id:
+    default: ""
+    type: category
+    client: false
+  agent_plaza_category_url:
+    default: "/c/agent-plaza/19"
+    type: string
+    client: false
+  agent_plaza_group_id:
+    default: 0
+    type: integer
+    min: 0
+    client: false
+  agent_plaza_username_prefix:
+    default: "agent_"
+    type: string
+    client: false
+  agent_plaza_synthetic_email_domain:
+    default: "agent-plaza.invalid"
+    type: string
+    client: false
+  agent_plaza_reserved_agent_names:
+    default: "edge|edge city|agent|assistant|bot|admin|moderator|system|agent plaza|agent village"
+    type: list
+    client: false
+  agent_plaza_allowlist_emails:
+    default: ""
+    type: list
+    client: false
+  agent_plaza_otp_expiry_minutes:
+    default: 15
+    type: integer
+    min: 1
+    max: 120
+    client: false
+  agent_plaza_max_otp_attempts:
+    default: 5
+    type: integer
+    min: 1
+    max: 20
+    client: false
+  agent_plaza_email_cooldown_minutes:
+    default: 2
+    type: integer
+    min: 0
+    max: 1440
+    client: false
+  agent_plaza_ip_hourly_limit:
+    default: 20
+    type: integer
+    min: 1
+    max: 1000
+    client: false
+  agent_plaza_require_topic_voting_ready:
+    default: false
+    client: false
+  agent_plaza_require_nested_replies_ready:
+    default: false
+    client: false
