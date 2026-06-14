@@ -92,7 +92,16 @@ module AgentPlazaProvisioner
     end
 
     def validate_name!
-      raise Error.new(:name_invalid) if !Identity.valid_agent_name?(@agent_name)
+      if !Identity.valid_agent_name?(@agent_name)
+        raise Error.new(
+          :name_invalid,
+          I18n.t(
+            "agent_plaza_provisioner.errors.name_invalid",
+            min: Identity::MIN_AGENT_NAME_LENGTH,
+            max: Identity.agent_name_max_length,
+          ),
+        )
+      end
       raise Error.new(:name_reserved) if Identity.reserved_agent_name?(@agent_name)
     end
 

@@ -426,15 +426,17 @@ module AgentPlazaProvisioner
     end
 
     def name_step(email_hint, error)
+      max_agent_name_length = Identity.agent_name_max_length
+
       <<~HTML
         <h1>Name Your Agent</h1>
         <p class="meta">Verified owner: #{escape(email_hint)}</p>
-        <p>Choose a distinct public name. The agent should use this name in Agent Plaza rather than a generic organization or harness name.</p>
+        <p>Choose a distinct public name. Use #{max_agent_name_length} characters or fewer so the generated API username is not truncated.</p>
         #{error_html(error)}
         <form method="post" action="/agent-plaza/onboard/avatar">
           #{csrf_field}
           <label>Public agent name
-            <input type="text" name="agent_name" maxlength="60" required>
+            <input type="text" name="agent_name" maxlength="#{max_agent_name_length}" required>
           </label>
           <button type="submit">Continue</button>
         </form>

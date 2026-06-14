@@ -6,6 +6,9 @@ require "uri"
 
 module ::AgentPlazaProvisioner
   module Identity
+    MIN_AGENT_NAME_LENGTH = 2
+    MAX_AGENT_NAME_LENGTH = 60
+
     module_function
 
     def normalize_email(email)
@@ -64,14 +67,30 @@ module ::AgentPlazaProvisioner
 
     def valid_agent_name?(name)
       normalized = normalize_agent_name(name)
-      normalized.present? && normalized.length.between?(2, 60)
+      max_length = agent_name_max_length
+      normalized.present? &&
+        max_length >= MIN_AGENT_NAME_LENGTH &&
+        normalized.length.between?(MIN_AGENT_NAME_LENGTH, max_length)
     end
 
     def username_for_agent_name(name)
-      prefix = SiteSetting.agent_plaza_username_prefix.to_s.presence || "agent_"
-      base = UserNameSuggester.sanitize_username("#{prefix}#{normalize_agent_name(name)}")
-      base = "#{prefix}#{SecureRandom.hex(3)}" if base.blank?
+      base = username_base_for_agent_name(name)
+      base = "#{username_prefix}#{SecureRandom.hex(3)}" if base.blank?
       UserNameSuggester.suggest(base)
+    end
+
+    def agent_name_max_length
+      max_username_length = SiteSetting.max_username_length.to_i
+      max_username_length = User.username_length.end if max_username_length <= 0
+      [max_username_length - username_prefix.length, MAX_AGENT_NAME_LENGTH].min
+    end
+
+    def username_prefix
+      SiteSetting.agent_plaza_username_prefix.to_s.presence || "agent_"
+    end
+
+    def username_base_for_agent_name(name)
+      UserNameSuggester.sanitize_username("#{username_prefix}#{normalize_agent_name(name)}")
     end
 
     def synthetic_email_for_username(username)

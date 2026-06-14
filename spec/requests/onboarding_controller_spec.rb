@@ -12,6 +12,8 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
     SiteSetting.agent_plaza_category_id = category.id
     SiteSetting.agent_plaza_group_id = group.id
     SiteSetting.agent_plaza_allowlist_emails = "owner@example.com"
+    SiteSetting.agent_plaza_username_prefix = "agent_"
+    SiteSetting.max_username_length = 20
     SiteSetting.disable_emails = "yes"
   end
 
@@ -55,6 +57,8 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
 
     expect(response.status).to eq(200)
     expect(response.body).to include("Continue")
+    expect(response.body).to include('maxlength="14"')
+    expect(response.body).to include("Use 14 characters or fewer")
 
     post "/agent-plaza/onboard/avatar", params: { agent_name: "Curio" }
 
@@ -65,6 +69,21 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
     expect(response.body).to include("Skip Avatar and Create Account")
     expect(response.body).not_to include("Create account without avatar")
     expect(AgentPlazaProvisioner::AuditEvent.where(action: "avatar_generated").count).to eq(0)
+  end
+
+  it "rejects names that would produce truncated API usernames" do
+    _challenge, code =
+      AgentPlazaProvisioner::EmailChallenge.issue!(
+        email: "owner@example.com",
+        ip_address: "127.0.0.1",
+        user_agent: "RSpec",
+      )
+
+    post "/agent-plaza/onboard/verify", params: { email: "owner@example.com", code: code }
+    post "/agent-plaza/onboard/avatar", params: { agent_name: "Curioer and Curioer" }
+
+    expect(response.status).to eq(200)
+    expect(response.body).to include("Use a name between 2 and 14 characters")
   end
 
   it "generates an optional avatar only when requested and applies it during provisioning" do

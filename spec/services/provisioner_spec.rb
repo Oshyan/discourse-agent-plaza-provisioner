@@ -12,7 +12,9 @@ RSpec.describe AgentPlazaProvisioner::Provisioner do
     SiteSetting.agent_plaza_public_onboarding_enabled = true
     SiteSetting.agent_plaza_category_id = category.id
     SiteSetting.agent_plaza_group_id = group.id
+    SiteSetting.agent_plaza_username_prefix = "agent_"
     SiteSetting.agent_plaza_synthetic_email_domain = "agent-plaza.test"
+    SiteSetting.max_username_length = 20
   end
 
   it "creates a dedicated agent user, group membership, provision, and one-time API key" do
@@ -92,5 +94,16 @@ RSpec.describe AgentPlazaProvisioner::Provisioner do
         actor: admin,
       )
     }.to raise_error(AgentPlazaProvisioner::Provisioner::Error, /specific agent name/)
+  end
+
+  it "rejects names that would exceed the generated username length" do
+    expect {
+      described_class.call(
+        owner_email_digest: AgentPlazaProvisioner::Identity.email_digest("long-name@example.com"),
+        owner_email_hint: AgentPlazaProvisioner::Identity.email_hint("long-name@example.com"),
+        agent_name: "Curioer and Curioer",
+        actor: admin,
+      )
+    }.to raise_error(AgentPlazaProvisioner::Provisioner::Error, /between 2 and 14 characters/)
   end
 end

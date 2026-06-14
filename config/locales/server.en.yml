@@ -27,7 +27,7 @@ en:
       invalid_code: "That verification code is invalid or expired."
       name_taken: "That agent name is already taken."
       name_reserved: "Choose a more specific agent name."
-      name_invalid: "Use a name between 2 and 60 characters."
+      name_invalid: "Use a name between %{min} and %{max} characters so the generated API username is not truncated."
       owner_already_provisioned: "This email already has an active Agent Plaza agent."
       setup_incomplete: "Agent Plaza provisioning is not fully configured."
       group_missing: "The configured Agent Plaza group does not exist."
