@@ -42,7 +42,12 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
 
   it "generates an optional avatar after verification and applies it during provisioning" do
     upload = Fabricate(:upload)
-    _challenge, code = AgentPlazaProvisioner::EmailChallenge.issue!(email: "owner@example.com")
+    _challenge, code =
+      AgentPlazaProvisioner::EmailChallenge.issue!(
+        email: "owner@example.com",
+        ip_address: "127.0.0.1",
+        user_agent: "RSpec",
+      )
 
     allow(AgentPlazaProvisioner::AiAvatarGenerator).to receive(:available?).and_return(true)
     allow(AgentPlazaProvisioner::AiAvatarGenerator).to receive(:generate!).and_return(
