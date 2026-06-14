@@ -35,6 +35,7 @@ after_initialize do
   require_relative "app/models/agent_plaza_provisioner/provision"
   require_relative "app/models/agent_plaza_provisioner/email_challenge"
   require_relative "app/models/agent_plaza_provisioner/audit_event"
+  require_relative "app/mailers/agent_plaza_provisioner/otp_mailer"
   require_relative "app/services/agent_plaza_provisioner/auditor"
   require_relative "app/services/agent_plaza_provisioner/allowlist"
   require_relative "app/services/agent_plaza_provisioner/otp_sender"

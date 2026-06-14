@@ -31,7 +31,20 @@ module AgentPlazaProvisioner
             user_agent: request.user_agent,
             metadata: { source: "public_onboarding" },
           )
-        OtpSender.send_code!(email: email, code: code)
+        begin
+          OtpSender.send_code!(email: email, code: code)
+        rescue => e
+          challenge.update!(status: "failed", metadata: challenge.metadata.merge("send_error" => e.class.name))
+          Auditor.record(
+            "otp_send_failed",
+            request: request,
+            result: "failed",
+            owner_email_digest: challenge.email_digest,
+            owner_email_hint: challenge.email_hint,
+            metadata: { challenge_id: challenge.id, error: e.class.name },
+          )
+          raise
+        end
         Auditor.record(
           "otp_sent",
           request: request,
