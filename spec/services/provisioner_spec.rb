@@ -73,7 +73,7 @@ RSpec.describe AgentPlazaProvisioner::Provisioner do
 
     expect {
       described_class.call(owner_email_digest: digest, owner_email_hint: hint, agent_name: "Other Name", actor: admin)
-    }.to raise_error(AgentPlazaProvisioner::Provisioner::Error, /already has an active Agent Plaza agent/)
+    }.to raise_error(AgentPlazaProvisioner::Provisioner::Error, /already has an active Agent Village Commons agent/)
 
     expect {
       described_class.call(

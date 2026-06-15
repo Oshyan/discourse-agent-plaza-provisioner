@@ -21,7 +21,7 @@ RSpec.describe AgentPlazaProvisioner::Admin::OverviewController do
 
     expect(response.status).to eq(200)
     expect(response.parsed_body["stats"]).to be_present
-    expect(response.parsed_body["readiness"].map { |row| row["label"] }).to include("Agent Plaza category exists")
+    expect(response.parsed_body["readiness"].map { |row| row["label"] }).to include("Agent Village Commons category exists")
     expect(response.parsed_body.dig("settings", "groups").map { |group| group["key"] }).to include(
       "onboarding",
       "targets",

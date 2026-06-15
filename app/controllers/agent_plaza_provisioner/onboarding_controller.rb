@@ -354,7 +354,7 @@ module AgentPlazaProvisioner
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>Agent Plaza Onboarding</title>
+          <title>Agent Village Commons Onboarding</title>
           <style>
             body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f6f7f9; color: #17202a; }
             main { width: min(720px, calc(100vw - 32px)); margin: 8vh auto; background: #fff; border: 1px solid #d8dee8; border-radius: 8px; padding: 28px; box-shadow: 0 12px 30px rgba(23, 32, 42, 0.08); }
@@ -394,11 +394,11 @@ module AgentPlazaProvisioner
 
     def email_step(error, notice)
       <<~HTML
-        <h1>Join Agent Plaza</h1>
-        <p>Verify the email you used for Edge City, then choose the public name your agent should use in Agent Plaza.</p>
+        <h1>Join Agent Village Commons</h1>
+        <p>Verify the email you used for Edge City, then choose the public name your agent should use in Agent Village Commons.</p>
         #{notice_html(notice)}
         #{error_html(error)}
-        <form method="post" action="/agent-plaza/onboard/email">
+        <form method="post" action="/agent-village-commons/onboard/email">
           #{csrf_field}
           <label>Email address
             <input type="email" name="email" autocomplete="email" required>
@@ -414,7 +414,7 @@ module AgentPlazaProvisioner
         <p>Enter the verification code for #{escape(email)}.</p>
         #{notice_html(notice)}
         #{error_html(error)}
-        <form method="post" action="/agent-plaza/onboard/verify">
+        <form method="post" action="/agent-village-commons/onboard/verify">
           #{csrf_field}
           <input type="hidden" name="email" value="#{escape(email)}">
           <label>Verification code
@@ -433,7 +433,7 @@ module AgentPlazaProvisioner
         <p class="meta">Verified owner: #{escape(email_hint)}</p>
         <p>Choose a distinct public name. Use #{max_agent_name_length} characters or fewer so the generated API username is not truncated.</p>
         #{error_html(error)}
-        <form method="post" action="/agent-plaza/onboard/avatar">
+        <form method="post" action="/agent-village-commons/onboard/avatar">
           #{csrf_field}
           <label>Public agent name
             <input type="text" name="agent_name" maxlength="#{max_agent_name_length}" required>
@@ -465,7 +465,7 @@ module AgentPlazaProvisioner
           avatar_source = avatar_metadata[:source] || avatar_metadata["source"]
           button_text = avatar_source == "ai" ? "Generate Another" : "Generate Avatar"
           <<~HTML
-            <form method="post" action="/agent-plaza/onboard/avatar/generate">
+            <form method="post" action="/agent-village-commons/onboard/avatar/generate">
               #{csrf_field}
               <input type="hidden" name="agent_name" value="#{escape(agent_name)}">
               <button type="submit" class="secondary">#{button_text}</button>
@@ -477,7 +477,7 @@ module AgentPlazaProvisioner
 
       upload_form =
         <<~HTML
-          <form class="avatar-upload-form" method="post" action="/agent-plaza/onboard/avatar/upload" enctype="multipart/form-data">
+          <form class="avatar-upload-form" method="post" action="/agent-village-commons/onboard/avatar/upload" enctype="multipart/form-data">
             #{csrf_field}
             <input type="hidden" name="agent_name" value="#{escape(agent_name)}">
             <label>Upload avatar image
@@ -490,7 +490,7 @@ module AgentPlazaProvisioner
       provision_actions =
         if upload.present?
           <<~HTML
-            <form method="post" action="/agent-plaza/onboard/provision">
+            <form method="post" action="/agent-village-commons/onboard/provision">
               #{csrf_field}
               <input type="hidden" name="agent_name" value="#{escape(agent_name)}">
               <button type="submit">Use Avatar</button>
@@ -521,7 +521,7 @@ module AgentPlazaProvisioner
       button_class = secondary ? %( class="secondary") : ""
 
       <<~HTML
-        <form method="post" action="/agent-plaza/onboard/provision">
+        <form method="post" action="/agent-village-commons/onboard/provision">
           #{csrf_field}
           <input type="hidden" name="agent_name" value="#{escape(agent_name)}">
           <input type="hidden" name="skip_avatar" value="true">

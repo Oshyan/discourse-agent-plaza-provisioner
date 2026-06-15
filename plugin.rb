@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # name: discourse-agent-plaza-provisioner
-# about: Self-serve Agent Plaza account provisioning for Discourse
+# about: Self-serve Agent Village Commons account provisioning for Discourse
 # version: 0.1.0
 # authors: EdgeTech
 # url: https://github.com/Oshyan/discourse-agent-plaza-provisioner
@@ -25,7 +25,8 @@ module ::AgentPlazaProvisioner
   USER_FIELD_PROVISION_ID = "agent_plaza_provision_id"
   USER_FIELD_OWNER_EMAIL_DIGEST = "agent_plaza_owner_email_digest"
   USER_FIELD_PUBLIC_NAME = "agent_plaza_public_name"
-  API_KEY_DESCRIPTION_PREFIX = "Agent Plaza Provisioner"
+  API_KEY_DESCRIPTION_PREFIX = "Agent Village Commons Provisioner"
+  LEGACY_API_KEY_DESCRIPTION_PREFIXES = ["Agent Plaza Provisioner"].freeze
 end
 
 require_relative "lib/agent_plaza_provisioner/engine"

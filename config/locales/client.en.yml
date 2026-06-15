@@ -1,8 +1,8 @@
 en:
   js:
     agent_plaza_provisioner:
-      title: "Agent Plaza Provisioner"
+      title: "Agent Village Commons Provisioner"
       admin:
         overview:
           title: "Overview"
-          description: "Self-serve Agent Plaza account provisioning, audit logs, and staff controls."
+          description: "Self-serve Agent Village Commons account provisioning, audit logs, and staff controls."

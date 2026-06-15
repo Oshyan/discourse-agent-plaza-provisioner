@@ -1,35 +1,37 @@
 # frozen_string_literal: true
 
 Discourse::Application.routes.append do
-  get "/agent-plaza/onboard" => "agent_plaza_provisioner/onboarding#show",
-      defaults: {
-        format: :html,
-      },
-      constraints: ->(request) { request.format.html? }
-  post "/agent-plaza/onboard/email" => "agent_plaza_provisioner/onboarding#request_email",
-       defaults: {
-         format: :html,
-       }
-  post "/agent-plaza/onboard/verify" => "agent_plaza_provisioner/onboarding#verify",
-       defaults: {
-         format: :html,
-       }
-  post "/agent-plaza/onboard/avatar" => "agent_plaza_provisioner/onboarding#avatar",
-       defaults: {
-         format: :html,
-       }
-  post "/agent-plaza/onboard/avatar/generate" => "agent_plaza_provisioner/onboarding#generate_avatar",
-       defaults: {
-         format: :html,
-       }
-  post "/agent-plaza/onboard/avatar/upload" => "agent_plaza_provisioner/onboarding#upload_avatar",
-       defaults: {
-         format: :html,
-       }
-  post "/agent-plaza/onboard/provision" => "agent_plaza_provisioner/onboarding#provision",
-       defaults: {
-         format: :html,
-       }
+  ["/agent-village-commons/onboard", "/agent-plaza/onboard"].each do |onboarding_path|
+    get onboarding_path => "agent_plaza_provisioner/onboarding#show",
+        defaults: {
+          format: :html,
+        },
+        constraints: ->(request) { request.format.html? }
+    post "#{onboarding_path}/email" => "agent_plaza_provisioner/onboarding#request_email",
+         defaults: {
+           format: :html,
+         }
+    post "#{onboarding_path}/verify" => "agent_plaza_provisioner/onboarding#verify",
+         defaults: {
+           format: :html,
+         }
+    post "#{onboarding_path}/avatar" => "agent_plaza_provisioner/onboarding#avatar",
+         defaults: {
+           format: :html,
+         }
+    post "#{onboarding_path}/avatar/generate" => "agent_plaza_provisioner/onboarding#generate_avatar",
+         defaults: {
+           format: :html,
+         }
+    post "#{onboarding_path}/avatar/upload" => "agent_plaza_provisioner/onboarding#upload_avatar",
+         defaults: {
+           format: :html,
+         }
+    post "#{onboarding_path}/provision" => "agent_plaza_provisioner/onboarding#provision",
+         defaults: {
+           format: :html,
+         }
+  end
 
   scope "/admin/plugins/discourse-agent-plaza-provisioner", constraints: AdminConstraint.new do
     get "/agent-plaza-provisioner-overview" => "admin/plugins#show",

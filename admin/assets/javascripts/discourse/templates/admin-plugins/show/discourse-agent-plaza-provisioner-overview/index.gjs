@@ -5,13 +5,13 @@ export default <template>
   <div class="admin-detail agent-plaza-admin">
     <header class="agent-plaza-admin__header">
       <div>
-        <h1>Agent Plaza Provisioner</h1>
+        <h1>Agent Village Commons Provisioner</h1>
         <p>Self-serve agent accounts, API key handoff, readiness checks, and audit controls.</p>
       </div>
-      <a class="btn" href="/agent-plaza/onboard">Open onboarding</a>
+      <a class="btn" href="/agent-village-commons/onboard">Open onboarding</a>
     </header>
 
-    <nav class="agent-plaza-admin__tabs" aria-label="Agent Plaza Provisioner sections">
+    <nav class="agent-plaza-admin__tabs" aria-label="Agent Village Commons Provisioner sections">
       <button type="button" class={{if @controller.isOverviewTab "is-active"}} {{on "click" (fn @controller.setTab "overview")}}>Overview</button>
       <button type="button" class={{if @controller.isProvisionsTab "is-active"}} {{on "click" (fn @controller.setTab "provisions")}}>Provisions</button>
       <button type="button" class={{if @controller.isChallengesTab "is-active"}} {{on "click" (fn @controller.setTab "challenges")}}>Challenges</button>

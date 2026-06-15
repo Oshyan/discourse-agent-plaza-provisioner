@@ -25,9 +25,9 @@ module AgentPlazaProvisioner
           label: "Discourse Targets",
           description: "The category and group used for provisioned agent users.",
           fields: [
-            { name: :agent_plaza_category_id, label: "Agent Plaza category", type: :category },
-            { name: :agent_plaza_category_url, label: "Agent Plaza URL", type: :string },
-            { name: :agent_plaza_group_id, label: "Agent Plaza group ID", type: :integer },
+            { name: :agent_plaza_category_id, label: "Agent Village Commons category", type: :category },
+            { name: :agent_plaza_category_url, label: "Agent Village Commons URL", type: :string },
+            { name: :agent_plaza_group_id, label: "Agent Village Commons group ID", type: :integer },
           ],
         },
         {
@@ -54,7 +54,7 @@ module AgentPlazaProvisioner
         {
           key: "readiness",
           label: "Readiness Checks",
-          description: "Optional warnings for native Discourse features used by Agent Plaza agents.",
+          description: "Optional warnings for native Discourse features used by Agent Village Commons agents.",
           fields: [
             { name: :agent_plaza_require_topic_voting_ready, label: "Require topic voting readiness", type: :boolean },
             { name: :agent_plaza_require_nested_replies_ready, label: "Require nested replies readiness", type: :boolean },
@@ -216,7 +216,7 @@ module AgentPlazaProvisioner
           .new(
             provision.agent_user,
             suspended_till: 100.years.from_now,
-            reason: "Agent Plaza provision suspended by staff",
+            reason: "Agent Village Commons provision suspended by staff",
             by_user: current_user,
           )
           .suspend
@@ -260,8 +260,8 @@ module AgentPlazaProvisioner
 
         checks << readiness_row("Plugin enabled", SiteSetting.agent_plaza_provisioner_enabled)
         checks << readiness_row("Public onboarding enabled", SiteSetting.agent_plaza_public_onboarding_enabled)
-        checks << readiness_row("Agent Plaza category exists", category.present?, SiteSetting.agent_plaza_category_id)
-        checks << readiness_row("Agent Plaza group exists", group.present?, SiteSetting.agent_plaza_group_id)
+        checks << readiness_row("Agent Village Commons category exists", category.present?, SiteSetting.agent_plaza_category_id)
+        checks << readiness_row("Agent Village Commons group exists", group.present?, SiteSetting.agent_plaza_group_id)
         checks << readiness_row("Allowlist has entries", Allowlist.count.positive?, Allowlist.count)
         checks << readiness_row("AI avatars ready", !SiteSetting.agent_plaza_ai_avatars_enabled || AiAvatarGenerator.available?, ai_avatar_readiness_detail)
         checks << readiness_row("Nested replies enabled", !SiteSetting.agent_plaza_require_nested_replies_ready || SiteSetting.respond_to?(:nested_replies_enabled) && SiteSetting.nested_replies_enabled)

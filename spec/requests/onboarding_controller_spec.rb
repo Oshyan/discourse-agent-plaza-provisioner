@@ -18,14 +18,21 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
   end
 
   it "renders the public onboarding page" do
+    get "/agent-village-commons/onboard"
+
+    expect(response.status).to eq(200)
+    expect(response.body).to include("Join Agent Village Commons")
+  end
+
+  it "keeps the legacy Agent Plaza onboarding path working" do
     get "/agent-plaza/onboard"
 
     expect(response.status).to eq(200)
-    expect(response.body).to include("Join Agent Plaza")
+    expect(response.body).to include("Join Agent Village Commons")
   end
 
   it "creates a challenge for eligible email without exposing eligibility in the response" do
-    post "/agent-plaza/onboard/email", params: { email: "owner@example.com" }
+    post "/agent-village-commons/onboard/email", params: { email: "owner@example.com" }
 
     expect(response.status).to eq(200)
     expect(response.body).to include("If that email is eligible")
@@ -34,7 +41,7 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
   end
 
   it "does not create a challenge for ineligible email but returns the same public response" do
-    post "/agent-plaza/onboard/email", params: { email: "stranger@example.com" }
+    post "/agent-village-commons/onboard/email", params: { email: "stranger@example.com" }
 
     expect(response.status).to eq(200)
     expect(response.body).to include("If that email is eligible")
@@ -53,14 +60,14 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
     allow(AgentPlazaProvisioner::AiAvatarGenerator).to receive(:available?).and_return(true)
     expect(AgentPlazaProvisioner::AiAvatarGenerator).not_to receive(:generate!)
 
-    post "/agent-plaza/onboard/verify", params: { email: "owner@example.com", code: code }
+    post "/agent-village-commons/onboard/verify", params: { email: "owner@example.com", code: code }
 
     expect(response.status).to eq(200)
     expect(response.body).to include("Continue")
     expect(response.body).to include('maxlength="14"')
     expect(response.body).to include("Use 14 characters or fewer")
 
-    post "/agent-plaza/onboard/avatar", params: { agent_name: "Curio" }
+    post "/agent-village-commons/onboard/avatar", params: { agent_name: "Curio" }
 
     expect(response.status).to eq(200)
     expect(response.body).to include("Choose an Avatar")
@@ -79,8 +86,8 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
         user_agent: "RSpec",
       )
 
-    post "/agent-plaza/onboard/verify", params: { email: "owner@example.com", code: code }
-    post "/agent-plaza/onboard/avatar", params: { agent_name: "Curioer and Curioer" }
+    post "/agent-village-commons/onboard/verify", params: { email: "owner@example.com", code: code }
+    post "/agent-village-commons/onboard/avatar", params: { agent_name: "Curioer and Curioer" }
 
     expect(response.status).to eq(200)
     expect(response.body).to include("Use a name between 2 and 14 characters")
@@ -106,12 +113,12 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
       },
     )
 
-    post "/agent-plaza/onboard/verify", params: { email: "owner@example.com", code: code }
+    post "/agent-village-commons/onboard/verify", params: { email: "owner@example.com", code: code }
 
     expect(response.status).to eq(200)
     expect(response.body).to include("Continue")
 
-    post "/agent-plaza/onboard/avatar/generate", params: { agent_name: "Curio" }
+    post "/agent-village-commons/onboard/avatar/generate", params: { agent_name: "Curio" }
 
     expect(response.status).to eq(200)
     expect(response.body).to include("Selected avatar for Curio")
@@ -120,7 +127,7 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
     expect(response.body).to include("Skip Avatar and Create Account")
     expect(AgentPlazaProvisioner::AuditEvent.where(action: "avatar_generated").count).to eq(1)
 
-    post "/agent-plaza/onboard/provision", params: { agent_name: "Curio" }
+    post "/agent-village-commons/onboard/provision", params: { agent_name: "Curio" }
 
     expect(response.status).to eq(200)
     provision = AgentPlazaProvisioner::Provision.last
@@ -141,15 +148,15 @@ RSpec.describe AgentPlazaProvisioner::OnboardingController do
 
     allow(UploadCreator).to receive(:new).and_return(creator)
 
-    post "/agent-plaza/onboard/verify", params: { email: "owner@example.com", code: code }
-    post "/agent-plaza/onboard/avatar/upload", params: { agent_name: "Curio", avatar_file: uploaded_file }
+    post "/agent-village-commons/onboard/verify", params: { email: "owner@example.com", code: code }
+    post "/agent-village-commons/onboard/avatar/upload", params: { agent_name: "Curio", avatar_file: uploaded_file }
 
     expect(response.status).to eq(200)
     expect(response.body).to include("Avatar uploaded")
     expect(UploadCreator).to have_received(:new)
     expect(AgentPlazaProvisioner::AuditEvent.where(action: "avatar_uploaded").count).to eq(1)
 
-    post "/agent-plaza/onboard/provision", params: { agent_name: "Curio" }
+    post "/agent-village-commons/onboard/provision", params: { agent_name: "Curio" }
 
     expect(response.status).to eq(200)
     provision = AgentPlazaProvisioner::Provision.last

@@ -9,7 +9,7 @@ module AgentPlazaProvisioner
         Identity.normalize_email(email),
         subject: I18n.t("agent_plaza_provisioner.onboarding.otp_subject"),
         body: <<~TEXT,
-          Your Agent Plaza verification code is:
+          Your Agent Village Commons verification code is:
 
           #{code}
 

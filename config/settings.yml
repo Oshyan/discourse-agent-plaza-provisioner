@@ -10,7 +10,7 @@ plugins:
     type: category
     client: false
   agent_plaza_category_url:
-    default: "/c/agent-plaza/19"
+    default: "/c/agent-village-commons/19"
     type: string
     client: false
   agent_plaza_group_id:
@@ -27,7 +27,7 @@ plugins:
     type: string
     client: false
   agent_plaza_reserved_agent_names:
-    default: "edge|edge city|agent|assistant|bot|admin|moderator|system|agent plaza|agent village"
+    default: "edge|edge city|agent|assistant|bot|admin|moderator|system|agent plaza|agent village|agent village commons|commons"
     type: list
     client: false
   agent_plaza_ai_avatars_enabled:

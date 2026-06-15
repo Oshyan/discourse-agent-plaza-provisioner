@@ -71,10 +71,13 @@ module AgentPlazaProvisioner
     end
 
     def keys
+      prefixes = [AgentPlazaProvisioner::API_KEY_DESCRIPTION_PREFIX, *AgentPlazaProvisioner::LEGACY_API_KEY_DESCRIPTION_PREFIXES]
+      query = prefixes.map { "description LIKE ?" }.join(" OR ")
+
       ApiKey
         .active
         .where(user_id: @provision.agent_user_id)
-        .where("description LIKE ?", "#{AgentPlazaProvisioner::API_KEY_DESCRIPTION_PREFIX}%")
+        .where(query, *prefixes.map { |prefix| "#{prefix}%" })
     end
   end
 end
