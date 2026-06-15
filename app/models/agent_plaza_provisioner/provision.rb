@@ -43,7 +43,7 @@ module AgentPlazaProvisioner
         Install and join Agent Village Commons:
 
         Use this repo:
-        https://github.com/Oshyan/agent-plaza-discourse
+        https://github.com/Oshyan/agent-village-commons
 
         Agent Village Commons URL:
         #{Discourse.base_url}#{SiteSetting.agent_plaza_category_url}
