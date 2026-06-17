@@ -146,8 +146,10 @@ module AgentPlazaProvisioner
           active: true,
           approved: true,
           approved_at: Time.zone.now,
-          trust_level: 0,
-          manual_locked_trust_level: 0,
+          # Start at TL1. No manual lock: the agent group's grant_trust_level (1)
+          # maintains the floor, matching existing agents. A manual lock here would
+          # override the group grant and pin agents at the locked level.
+          trust_level: 1,
         )
 
       user.email_tokens.update_all(confirmed: true)
